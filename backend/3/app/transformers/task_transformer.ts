@@ -1,16 +1,16 @@
-import type Task from '#models/task'
+﻿import type Task from '#models/task'
 import { BaseTransformer } from '@adonisjs/core/transformers'
 
 export default class TaskTransformer extends BaseTransformer<Task> {
   toObject() {
-    return this.pick(this.resource, [
-      'id',
-      'title',
-      'description',
-      'status',
-      'userId',
-      'createdAt',
-      'updatedAt',
-    ])
+    return {
+      id: this.resource.id,
+      title: this.resource.title,
+      description: this.resource.description,
+      status: this.resource.status,
+      user_id: this.resource.userId,
+      created_at: this.resource.createdAt,
+      updated_at: this.resource.updatedAt,
+    }
   }
 }

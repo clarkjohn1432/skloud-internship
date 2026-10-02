@@ -9,10 +9,27 @@ export default class User extends compose(UserSchema, withAuthFinder(hash)) {
   declare currentAccessToken?: AccessToken
 
   get initials() {
-    const [first, last] = this.name ? this.name.split(' ') : this.email.split('@')
-    if (first && last) {
-      return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase()
+    const name = this.name
+    const email = this.email
+    const trimmedName = name && name.trim() ? name.trim() : ''
+    if (trimmedName) {
+      const nameParts = trimmedName.split(/\s+/).filter(Boolean)
+      if (nameParts.length >= 2) {
+        const [first, second] = nameParts
+        if (first && second) {
+          return (first.charAt(0) + second.charAt(0)).toUpperCase()
+        }
+      }
+      const first = nameParts[0]
+      if (first && first.length >= 2) {
+        return first.slice(0, 2).toUpperCase()
+      }
+      if (first) {
+        return first.toUpperCase()
+      }
     }
-    return `${first.slice(0, 2)}`.toUpperCase()
+    const emailPart = email ? email.split('@')[0] : ''
+    if (!emailPart) return ''
+    return emailPart.length >= 2 ? emailPart.slice(0, 2).toUpperCase() : emailPart.toUpperCase()
   }
 }

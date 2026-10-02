@@ -14,7 +14,7 @@ test.group('Me', (group) => {
       password: 'password123',
     })
 
-    const response = await client.get('/api/v1/me').loginAs(user)
+    const response = await client.get('/me').loginAs(user)
 
     response.assertStatus(200)
     response.assertBodyContains({
@@ -33,7 +33,7 @@ test.group('Me', (group) => {
       password: 'password123',
     })
 
-    const response = await client.get('/api/v1/me').loginAs(user)
+    const response = await client.get('/me').loginAs(user)
 
     response.assertBodyNotContains({ password: 'password123' })
   })
@@ -45,14 +45,14 @@ test.group('Me', (group) => {
       password: 'password123',
     })
 
-    const response = await client.get('/api/v1/me')
+    const response = await client.get('/me')
 
     response.assertStatus(401)
   })
 
   test('returns 401 when the token is invalid', async ({ client }) => {
     const response = await client
-      .get('/api/v1/me')
+      .get('/me')
       .header('Authorization', 'Bearer definitely-not-a-valid-token')
 
     response.assertStatus(401)

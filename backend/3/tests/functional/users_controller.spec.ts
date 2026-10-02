@@ -8,7 +8,7 @@ test.group('Users', (group) => {
   })
 
   test('registers a new user', async ({ client, assert }) => {
-    const response = await client.post('/api/v1/users').json({
+    const response = await client.post('/users').json({
       name: 'Jane Doe',
       email: 'jane@example.com',
       password: 'password123',
@@ -31,7 +31,7 @@ test.group('Users', (group) => {
   test('rejects registration without a name', async ({ client }) => {
     // `unsafeJson` lets us send a body the generated client types forbid,
     // which is exactly the kind of request a real client can make.
-    const response = await client.post('/api/v1/users').unsafeJson({
+    const response = await client.post('/users').unsafeJson({
       email: 'missing-name@example.com',
       password: 'password123',
       passwordConfirmation: 'password123',
@@ -41,7 +41,7 @@ test.group('Users', (group) => {
   })
 
   test('rejects registration with a blank name', async ({ client }) => {
-    const response = await client.post('/api/v1/users').json({
+    const response = await client.post('/users').json({
       name: '   ',
       email: 'blank-name@example.com',
       password: 'password123',
@@ -52,7 +52,7 @@ test.group('Users', (group) => {
   })
 
   test('rejects registration with an invalid email', async ({ client }) => {
-    const response = await client.post('/api/v1/users').unsafeJson({
+    const response = await client.post('/users').unsafeJson({
       name: 'Bad Email',
       email: 'not-an-email',
       password: 'password123',
@@ -70,9 +70,9 @@ test.group('Users', (group) => {
       passwordConfirmation: 'password123',
     }
 
-    await client.post('/api/v1/users').json(payload)
+    await client.post('/users').json(payload)
 
-    const response = await client.post('/api/v1/users').json({
+    const response = await client.post('/users').json({
       ...payload,
       name: 'Second',
     })

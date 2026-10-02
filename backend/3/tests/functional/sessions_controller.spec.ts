@@ -14,7 +14,7 @@ test.group('Sessions', (group) => {
       password: 'password123',
     })
 
-    const response = await client.post('/api/v1/sessions').json({
+    const response = await client.post('/sessions').json({
       email: 'tester@example.com',
       password: 'password123',
     })
@@ -34,7 +34,7 @@ test.group('Sessions', (group) => {
       password: 'password123',
     })
 
-    const login = await client.post('/api/v1/sessions').json({
+    const login = await client.post('/sessions').json({
       email: 'reuse@example.com',
       password: 'password123',
     })
@@ -42,7 +42,7 @@ test.group('Sessions', (group) => {
     const body = login.body() as { data: { token: string } }
 
     const response = await client
-      .get('/api/v1/me')
+      .get('/me')
       .header('Authorization', `Bearer ${body.data.token}`)
 
     response.assertStatus(200)
@@ -55,7 +55,7 @@ test.group('Sessions', (group) => {
       password: 'password123',
     })
 
-    const response = await client.post('/api/v1/sessions').json({
+    const response = await client.post('/sessions').json({
       email: 'wrong-password@example.com',
       password: 'nope-not-it',
     })
@@ -65,7 +65,7 @@ test.group('Sessions', (group) => {
 
   test('rejects login without a password', async ({ client }) => {
     const response = await client
-      .post('/api/v1/sessions')
+      .post('/sessions')
       .unsafeJson({ email: 'tester@example.com' })
 
     response.assertStatus(400)
@@ -78,7 +78,7 @@ test.group('Sessions', (group) => {
       password: 'password123',
     })
 
-    const login = await client.post('/api/v1/sessions').json({
+    const login = await client.post('/sessions').json({
       email: 'logout@example.com',
       password: 'password123',
     })
@@ -86,14 +86,14 @@ test.group('Sessions', (group) => {
     const body = login.body() as { data: { token: string } }
 
     const logout = await client
-      .delete('/api/v1/sessions')
+      .delete('/sessions')
       .header('Authorization', `Bearer ${body.data.token}`)
 
     logout.assertStatus(200)
 
     // The revoked token must no longer be accepted.
     const meResponse = await client
-      .get('/api/v1/me')
+      .get('/me')
       .header('Authorization', `Bearer ${body.data.token}`)
 
     meResponse.assertStatus(401)

@@ -19,7 +19,7 @@ test.group('Tasks', (group) => {
   test('creates a task for the authenticated user', async ({ client }) => {
     const user = await createUser('creator@example.com')
 
-    const response = await client.post('/api/v1/tasks').loginAs(user).json({
+    const response = await client.post('/tasks').loginAs(user).json({
       title: 'Buy groceries',
       description: 'Milk, eggs, bread',
       status: 'pending',
@@ -31,7 +31,7 @@ test.group('Tasks', (group) => {
         title: 'Buy groceries',
         description: 'Milk, eggs, bread',
         status: 'pending',
-        userId: user.id,
+        user_id: user.id,
       },
     })
   })
@@ -40,7 +40,7 @@ test.group('Tasks', (group) => {
     const user = await createUser('defaults@example.com')
 
     const response = await client
-      .post('/api/v1/tasks')
+      .post('/tasks')
       .loginAs(user)
       .unsafeJson({ title: 'Only a title' })
 
@@ -62,7 +62,7 @@ test.group('Tasks', (group) => {
     await Task.create({ title: 'Alice Task 2', status: 'in_progress', userId: alice.id })
     await Task.create({ title: 'Bob Task', status: 'pending', userId: bob.id })
 
-    const response = await client.get('/api/v1/tasks').loginAs(alice)
+    const response = await client.get('/tasks').loginAs(alice)
 
     response.assertStatus(200)
 
@@ -81,10 +81,10 @@ test.group('Tasks', (group) => {
       title: 'Important',
       description: 'Very important',
       status: 'pending',
-      userId: user.id,
+      user_id: user.id,
     })
 
-    const response = await client.get(`/api/v1/tasks/${task.id}`).loginAs(user)
+    const response = await client.get(`/tasks/${task.id}`).loginAs(user)
 
     response.assertStatus(200)
     response.assertBodyContains({
@@ -98,7 +98,7 @@ test.group('Tasks', (group) => {
 
     const task = await Task.create({ title: 'Private', status: 'pending', userId: alice.id })
 
-    const response = await client.get(`/api/v1/tasks/${task.id}`).loginAs(bob)
+    const response = await client.get(`/tasks/${task.id}`).loginAs(bob)
 
     response.assertStatus(403)
   })
@@ -110,10 +110,10 @@ test.group('Tasks', (group) => {
       title: 'To Update',
       description: 'Old description',
       status: 'pending',
-      userId: user.id,
+      user_id: user.id,
     })
 
-    const response = await client.patch(`/api/v1/tasks/${task.id}`).loginAs(user).json({
+    const response = await client.patch(`/tasks/${task.id}`).loginAs(user).json({
       title: 'Updated Title',
       status: 'done',
     })
@@ -136,7 +136,7 @@ test.group('Tasks', (group) => {
 
     const task = await Task.create({ title: 'Not Yours', status: 'pending', userId: alice.id })
 
-    const response = await client.patch(`/api/v1/tasks/${task.id}`).loginAs(bob).json({
+    const response = await client.patch(`/tasks/${task.id}`).loginAs(bob).json({
       status: 'done',
     })
 
@@ -150,9 +150,9 @@ test.group('Tasks', (group) => {
   test('deletes a task owned by the user', async ({ client, assert }) => {
     const user = await createUser('deleter@example.com')
 
-    const task = await Task.create({ title: 'To Delete', status: 'pending', userId: user.id })
+    const task = await Task.create({ title: 'To Delete', status: 'pending', user_id: user.id })
 
-    const response = await client.delete(`/api/v1/tasks/${task.id}`).loginAs(user)
+    const response = await client.delete(`/tasks/${task.id}`).loginAs(user)
 
     response.assertStatus(204)
     assert.isNull(await Task.find(task.id))
@@ -164,7 +164,7 @@ test.group('Tasks', (group) => {
 
     const task = await Task.create({ title: 'Keep me', status: 'pending', userId: alice.id })
 
-    const response = await client.delete(`/api/v1/tasks/${task.id}`).loginAs(bob)
+    const response = await client.delete(`/tasks/${task.id}`).loginAs(bob)
 
     response.assertStatus(403)
     assert.exists(await Task.find(task.id))
@@ -173,7 +173,7 @@ test.group('Tasks', (group) => {
   test('returns 404 for a task that does not exist', async ({ client }) => {
     const user = await createUser('ghost@example.com')
 
-    const response = await client.get('/api/v1/tasks/9999').loginAs(user)
+    const response = await client.get('/tasks/9999').loginAs(user)
 
     response.assertStatus(404)
   })
@@ -183,14 +183,14 @@ test.group('Tasks', (group) => {
 
     const responses = await Promise.all([
       // Blank title.
-      client.post('/api/v1/tasks').loginAs(user).unsafeJson({ title: '   ' }),
+      client.post('/tasks').loginAs(user).unsafeJson({ title: '   ' }),
       // Unknown status.
       client
-        .post('/api/v1/tasks')
+        .post('/tasks')
         .loginAs(user)
         .unsafeJson({ title: 'Valid', status: 'not-a-status' }),
       // Wrong type for title.
-      client.post('/api/v1/tasks').loginAs(user).unsafeJson({ title: 42 }),
+      client.post('/tasks').loginAs(user).unsafeJson({ title: 42 }),
     ])
 
     responses.forEach((response) => response.assertStatus(400))
@@ -199,10 +199,10 @@ test.group('Tasks', (group) => {
   test('rejects an invalid payload on update', async ({ client }) => {
     const user = await createUser('invalid-update@example.com')
 
-    const task = await Task.create({ title: 'Valid', status: 'pending', userId: user.id })
+    const task = await Task.create({ title: 'Valid', status: 'pending', user_id: user.id })
 
     const response = await client
-      .patch(`/api/v1/tasks/${task.id}`)
+      .patch(`/tasks/${task.id}`)
       .loginAs(user)
       .unsafeJson({ status: 'archived' })
 
@@ -211,14 +211,14 @@ test.group('Tasks', (group) => {
 
   test('requires authentication on every task route', async ({ client, assert }) => {
     const user = await createUser('auth-check@example.com')
-    const task = await Task.create({ title: 'Guarded', status: 'pending', userId: user.id })
+    const task = await Task.create({ title: 'Guarded', status: 'pending', user_id: user.id })
 
     const responses = await Promise.all([
-      client.get('/api/v1/tasks'),
-      client.post('/api/v1/tasks').json({ title: 'Nope', status: 'pending' }),
-      client.get(`/api/v1/tasks/${task.id}`),
-      client.patch(`/api/v1/tasks/${task.id}`).json({ status: 'done' }),
-      client.delete(`/api/v1/tasks/${task.id}`),
+      client.get('/tasks'),
+      client.post('/tasks').json({ title: 'Nope', status: 'pending' }),
+      client.get(`/tasks/${task.id}`),
+      client.patch(`/tasks/${task.id}`).json({ status: 'done' }),
+      client.delete(`/tasks/${task.id}`),
     ])
 
     responses.forEach((response) => response.assertStatus(401))
